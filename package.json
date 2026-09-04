@@ -1,0 +1,133 @@
+{
+  "name": "vscode-extension-health",
+  "displayName": "Extension Health",
+  "description": "Surfaces deprecated, stale, and disabled-but-installed extensions in a sidebar view.",
+  "version": "0.0.1",
+  "publisher": "placeholder-publisher",
+  "private": true,
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onView:extensionHealth.view"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "extensionHealth",
+          "title": "Extension Health",
+          "icon": "resources/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "extensionHealth": [
+        {
+          "id": "extensionHealth.view",
+          "name": "Extension Health"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "extensionHealth.refresh",
+        "title": "Refresh",
+        "category": "Extension Health",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "extensionHealth.openInMarketplace",
+        "title": "Open in Marketplace",
+        "category": "Extension Health"
+      },
+      {
+        "command": "extensionHealth.uninstall",
+        "title": "Uninstall Extension",
+        "category": "Extension Health"
+      },
+      {
+        "command": "extensionHealth.setGithubToken",
+        "title": "Set GitHub Token",
+        "category": "Extension Health"
+      },
+      {
+        "command": "extensionHealth.showInline",
+        "title": "Show Dates Inline",
+        "category": "Extension Health",
+        "icon": "$(list-flat)"
+      },
+      {
+        "command": "extensionHealth.showDropdown",
+        "title": "Show Dates as Dropdown",
+        "category": "Extension Health",
+        "icon": "$(list-tree)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "extensionHealth.refresh",
+          "when": "view == extensionHealth.view",
+          "group": "navigation@1"
+        },
+        {
+          "command": "extensionHealth.showDropdown",
+          "when": "view == extensionHealth.view && extensionHealth.detailDisplay == inline",
+          "group": "navigation@2"
+        },
+        {
+          "command": "extensionHealth.showInline",
+          "when": "view == extensionHealth.view && extensionHealth.detailDisplay == dropdown",
+          "group": "navigation@2"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "extensionHealth.openInMarketplace",
+          "when": "view == extensionHealth.view && viewItem == extensionItem"
+        },
+        {
+          "command": "extensionHealth.uninstall",
+          "when": "view == extensionHealth.view && viewItem == extensionItem"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Extension Health",
+      "properties": {
+        "extensionHealth.staleMonths": {
+          "type": "number",
+          "default": 12,
+          "description": "Number of months since the last Marketplace update before an extension is considered stale."
+        },
+        "extensionHealth.excludedExtensions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Extension IDs to exclude from health checks."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/vscode": "^1.90.0",
+    "typescript": "^5.5.4",
+    "@vscode/vsce": "^3.9.2"
+  }
+}
