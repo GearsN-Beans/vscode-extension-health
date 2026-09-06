@@ -7,6 +7,16 @@ GitHub last-commit recency.
 
 This is a personal/community tool, not affiliated with or endorsed by Microsoft.
 
+## Screenshots
+
+Inline mode (details shown next to each extension name):
+
+![Inline mode](resources/screenshots/inline-mode.png)
+
+Dropdown mode (click an extension to expand its details as a child row):
+
+![Dropdown mode](resources/screenshots/dropdown-mode.png)
+
 ## How it works
 
 - **Installed extensions (including disabled ones)** are found by scanning your local
