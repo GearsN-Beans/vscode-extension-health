@@ -3,7 +3,7 @@
   "displayName": "Extension Health",
   "description": "Surfaces deprecated, stale, and disabled-but-installed extensions in a sidebar view.",
   "version": "0.0.1",
-  "publisher": "gearsnbeans",
+  "publisher": "gears-n-beans",
   "license": "MIT",
   "repository": {
     "type": "git",
