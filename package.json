@@ -130,6 +130,7 @@
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile",
+    "test": "node --require ./scripts/register-vscode-mock.cjs --test out/test/*.test.js",
     "package": "vsce package"
   },
   "devDependencies": {
