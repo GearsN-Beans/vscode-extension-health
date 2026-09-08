@@ -111,3 +111,30 @@ test('scanInstalledExtensions leaves iconPath undefined when the declared icon f
   const records = await scanInstalledExtensions();
   assert.equal(records[0]?.iconPath, undefined);
 });
+
+test('scanInstalledExtensions resolves an NLS displayName placeholder via package.nls.json', async () => {
+  const extensionsDir = await makeTempExtensionsDir();
+  const dir = path.join(extensionsDir, 'acme.widget-1.0.0');
+  await fs.mkdir(dir, { recursive: true });
+  await fs.writeFile(
+    path.join(dir, 'package.json'),
+    JSON.stringify({ name: 'widget', publisher: 'acme', displayName: '%displayName%' })
+  );
+  await fs.writeFile(path.join(dir, 'package.nls.json'), JSON.stringify({ displayName: 'Widget Tools' }));
+
+  const records = await scanInstalledExtensions();
+  assert.equal(records[0]?.displayName, 'Widget Tools');
+});
+
+test('scanInstalledExtensions falls back to the raw name when an NLS placeholder cannot be resolved', async () => {
+  const extensionsDir = await makeTempExtensionsDir();
+  await writeExtension(extensionsDir, 'acme.widget-1.0.0', {
+    name: 'widget',
+    publisher: 'acme',
+    displayName: '%displayName%',
+  });
+
+  const records = await scanInstalledExtensions();
+  assert.equal(records[0]?.displayName, 'widget');
+});
+

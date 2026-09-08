@@ -59,6 +59,23 @@ async function resolveIconPath(extensionPath: string, icon: unknown): Promise<st
   }
 }
 
+// Manifest fields like "displayName" are often an NLS placeholder (e.g. "%displayName%") that VS
+// Code's own extension host resolves against package.nls.json — we read package.json raw, so we
+// have to do that resolution ourselves or these show up to users as the literal placeholder text.
+async function resolveNlsString(extensionPath: string, value: string): Promise<string> {
+  const match = /^%(.+)%$/.exec(value);
+  if (!match) {
+    return value;
+  }
+  try {
+    const nlsRaw = await fs.readFile(path.join(extensionPath, 'package.nls.json'), 'utf8');
+    const nls = JSON.parse(nlsRaw) as Record<string, string>;
+    return nls[match[1]] ?? value;
+  } catch {
+    return value;
+  }
+}
+
 async function readExtensionRecord(extensionsDir: string, folderName: string): Promise<ExtensionRecord | undefined> {
   const extensionPath = path.join(extensionsDir, folderName);
   try {
@@ -73,11 +90,15 @@ async function readExtensionRecord(extensionsDir: string, folderName: string): P
     }
     const id = `${pkg.publisher}.${pkg.name}`.toLowerCase();
     const iconPath = await resolveIconPath(extensionPath, pkg.icon);
+    const resolvedDisplayName = await resolveNlsString(extensionPath, pkg.displayName ?? pkg.name);
+    // If it's still a "%...%" placeholder, the nls lookup failed (missing file/key) — fall back
+    // to the raw package name rather than showing unresolved placeholder text to the user.
+    const displayName = /^%.+%$/.test(resolvedDisplayName) ? pkg.name : resolvedDisplayName;
     return {
       id,
       publisher: pkg.publisher,
       name: pkg.name,
-      displayName: pkg.displayName ?? pkg.name,
+      displayName,
       version: pkg.version ?? 'unknown',
       extensionPath,
       enabled: false, // filled in by caller via diff against vscode.extensions.all

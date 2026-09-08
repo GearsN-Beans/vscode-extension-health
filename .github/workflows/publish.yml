@@ -1,0 +1,30 @@
+name: Publish to VS Code Marketplace
+
+# Trigger by bumping "version" in package.json, committing, then pushing a matching tag:
+#   git tag v0.0.6 && git push origin v0.0.6
+# Or run manually from the Actions tab (uses whatever version is currently in package.json).
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm ci
+
+      - run: npm test
+
+      - run: npx vsce package
+
+      - run: npx vsce publish --packagePath *.vsix --pat "$VSCE_PAT"
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
