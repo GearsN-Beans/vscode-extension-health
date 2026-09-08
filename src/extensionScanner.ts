@@ -24,6 +24,28 @@ async function readObsoleteSet(extensionsDir: string): Promise<Set<string>> {
   }
 }
 
+interface ExtensionsJsonEntry {
+  identifier?: { id?: string };
+  relativeLocation?: string;
+}
+
+// extensions.json is VS Code's own ledger of what's actually installed (enabled + disabled).
+// Folders left on disk after a failed/partial uninstall or update won't appear here, even
+// though a raw directory listing would still see them — cross-referencing against it is the
+// only reliable way to avoid reporting long-gone extensions as "installed".
+async function readTrackedFolderNames(extensionsDir: string): Promise<Set<string> | undefined> {
+  try {
+    const raw = await fs.readFile(path.join(extensionsDir, 'extensions.json'), 'utf8');
+    const entries = JSON.parse(raw) as ExtensionsJsonEntry[];
+    const folderNames = entries.map((entry) => entry.relativeLocation).filter((name): name is string => !!name);
+    return new Set(folderNames);
+  } catch {
+    // Missing/unreadable extensions.json (e.g. unexpected install layout) — fail open rather
+    // than hiding every extension.
+    return undefined;
+  }
+}
+
 async function resolveIconPath(extensionPath: string, icon: unknown): Promise<string | undefined> {
   if (typeof icon !== 'string' || icon.length === 0) {
     return undefined;
@@ -77,11 +99,13 @@ export async function scanInstalledExtensions(): Promise<ExtensionRecord[]> {
   }
 
   const obsolete = await readObsoleteSet(extensionsDir);
+  const trackedFolderNames = await readTrackedFolderNames(extensionsDir);
   const enabledIds = new Set(vscode.extensions.all.map((ext) => ext.id.toLowerCase()));
 
   const records = await Promise.all(
     folderNames
       .filter((folderName) => !folderName.startsWith('.') && !obsolete.has(folderName))
+      .filter((folderName) => trackedFolderNames === undefined || trackedFolderNames.has(folderName))
       .map((folderName) => readExtensionRecord(extensionsDir, folderName))
   );
 

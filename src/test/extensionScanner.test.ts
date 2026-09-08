@@ -70,6 +70,29 @@ test('scanInstalledExtensions skips folders with an unreadable package.json', as
   assert.equal(records.length, 0);
 });
 
+test('scanInstalledExtensions ignores folders not tracked in extensions.json (orphaned leftovers)', async () => {
+  const extensionsDir = await makeTempExtensionsDir();
+  await writeExtension(extensionsDir, 'acme.widget-1.0.0', { name: 'widget', publisher: 'acme', version: '1.0.0' });
+  await writeExtension(extensionsDir, 'acme.orphan-0.1.0', { name: 'orphan', publisher: 'acme', version: '0.1.0' });
+  await fs.writeFile(
+    path.join(extensionsDir, 'extensions.json'),
+    JSON.stringify([{ identifier: { id: 'acme.widget' }, relativeLocation: 'acme.widget-1.0.0' }])
+  );
+
+  const records = await scanInstalledExtensions();
+
+  assert.equal(records.length, 1);
+  assert.equal(records[0]?.id, 'acme.widget');
+});
+
+test('scanInstalledExtensions falls back to a full disk scan when extensions.json is missing', async () => {
+  const extensionsDir = await makeTempExtensionsDir();
+  await writeExtension(extensionsDir, 'acme.widget-1.0.0', { name: 'widget', publisher: 'acme', version: '1.0.0' });
+
+  const records = await scanInstalledExtensions();
+  assert.equal(records.length, 1);
+});
+
 test('scanInstalledExtensions resolves an extension icon when present on disk', async () => {
   const extensionsDir = await makeTempExtensionsDir();
   const dir = path.join(extensionsDir, 'acme.widget-1.0.0');

@@ -2,7 +2,7 @@
   "name": "vscode-extension-health",
   "displayName": "Extension Health",
   "description": "Surfaces deprecated, stale, and disabled-but-installed extensions in a sidebar view.",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "publisher": "gears-n-beans",
   "license": "MIT",
   "repository": {
@@ -131,7 +131,8 @@
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile",
     "test": "node --require ./scripts/register-vscode-mock.cjs --test out/test/*.test.js",
-    "package": "vsce package"
+    "package": "vsce package",
+    "reinstall:local": "bash ./scripts/reinstall-local.sh"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",

@@ -10,18 +10,18 @@ const GITHUB_CACHE_KEY = 'extensionHealth.githubCache';
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24h
 const GITHUB_TOKEN_SECRET_KEY = 'extensionHealth.githubToken';
 
-function computeStatus(record: { enabled: boolean }, info: GalleryInfo, staleMonths: number): HealthInfo['status'] {
+export function computeStatus(record: { enabled: boolean }, info: GalleryInfo, staleMonths: number): HealthInfo['status'] {
   if (info.deprecated) {
     return 'deprecated';
+  }
+  if (!record.enabled) {
+    return 'disabled';
   }
   if (info.lastUpdated) {
     const monthsSinceUpdate = (Date.now() - new Date(info.lastUpdated).getTime()) / (1000 * 60 * 60 * 24 * 30);
     if (monthsSinceUpdate > staleMonths) {
       return 'stale';
     }
-  }
-  if (!record.enabled) {
-    return 'disabled';
   }
   return 'healthy';
 }
